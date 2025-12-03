@@ -1,0 +1,27 @@
+# Backend (Python)
+backend/__pycache__/
+backend/*.py[cod]
+backend/.env
+backend/venv/
+backend/env/
+
+# Frontend (Node.js)
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.vite/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
