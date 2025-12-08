@@ -1,0 +1,185 @@
+Objetivo
+
+Dado un punto (usuario) el agente devuelve una lista ordenada de 3 estacionamientos recomendados según una función de utilidad configurable (ej.: distancia, lugares_disponibles, garage). Debe ser rápido, explicable y reproducible.
+
+Supuestos explícitos (sé riguroso)
+
+Tu CSV contiene, por registro: identificador (gid), altura, lugares_disponibles, garage (o tipo), y st_asgeojson con geometría (LineString).
+
+No hay serie temporal: la recomendación será sobre datos estáticos (estado “actual” del CSV).
+
+Coordenadas en st_asgeojson están en lon/lat (EPSG:4326).
+
+No conocemos la precisión de lugares_disponibles (puede ser estimada).
+Si alguno de estos supuestos falla, los pasos cambiarían (lo indico donde aplica).
+
+Requisitos y artefactos finales (entregables)
+
+Preprocesamiento reproducible: script/notebook que genera un dataset listo para consulta.
+
+API REST simple que recibe (lat, lon, opciones de usuario) y devuelve top-3 recomendaciones con puntuación y explicación (qué pesó).
+
+Frontend Vite minimal: mapa, formulario de ubicación, sliders para pesos (distancia / capacidad / garage), lista de resultados con explicación.
+
+
+
+
+Requisitos técnicos — Python (backend / preproc / ML)
+
+Python 
+
+Librerías (mínimo):
+
+pandas (manipulación tabular)
+
+geopandas (geometría y CRS)
+
+shapely (geometría)
+
+pyproj (proyecciones)
+
+scikit-learn (normalización, métricas, si se usa ranking ML)
+
+numpy
+
+fastapi (API) 
+
+uvicorn (servidor ASGI)
+
+rtree o pygeos (opcional, para index espacial rápido)
+
+shapely.speedups (si está disponible)
+
+joblib (serializar modelos)
+
+
+
+
+
+Formato de salida del backend: JSON con campos {gid, score, distance_m, lugares_disponibles, garage, explanation}.
+
+Librerías / stack para Vite (frontend)
+
+
+
+Paquetes recomendados:
+
+react-leaflet + leaflet (mapa)
+
+leaflet.markercluster o react-leaflet-cluster (si hay muchos marcadores)
+
+fetch (llamadas API)
+
+tailwindcss (estilos rápidos) 
+
+recharts o chart.js (visualizaciones simples)
+
+lucide-react (íconos)
+
+framer-motion (animaciones opcionales)
+
+UX: control lateral con sliders para ponderaciones, botón “usar mi ubicación”, lista de 3 recomendaciones con botón “ir” y detalle.
+
+Pipeline de trabajo paso a paso (sin código)
+
+Ingesta del CSV
+
+Leer CSV con pandas.
+
+Validar columnas esperadas; registrar filas inválidas en log.
+
+Parseo de st_asgeojson → geometría
+
+Convertir la cadena JSON en geometría LineString.
+
+Si hay geometrías inválidas, marcarlas y decidir: corregir/descartar.
+
+Proyección / cálculo métrico
+
+Proyectar geometrías a CRS métrico apropiado (UTM zone local) para calcular distancias y longitudes en metros.
+
+Calcular centroid (punto representativo), y length_m de cada segmento.
+
+Feature engineering espacial
+
+Coordenadas del centroid: lon/lat y x,y métricos.
+
+length_m (longitud del segmento).
+
+neighbor_density_r: número de otros segmentos dentro de radios r = 50m, 100m (usar R-tree para acelerar).
+
+dist_to_center: distancia al centroide urbano (opcional).
+
+is_garage (binario) derivado de garage si no es ya binario.
+
+capacity_ratio (si tienes info de demanda; si no, omitir).
+
+Limpieza / normalización
+
+Tratar valores faltantes (imputación simple o fila descartada según % missing).
+
+Normalizar variables para la función de utilidad (min-max o z-score) — especial para combinar distancia con lugares.
+
+Índice espacial
+
+Construir R-tree / k-d tree para búsqueda rápida de vecinos y consultas por radio.
+
+Función de utilidad (core)
+
+Definir U = w1 * f_distance + w2 * f_lugares + w3 * f_garage
+
+f_distance: función decreciente con distancia (ej. 1 / (1 + d) o exponencial).
+
+f_lugares: normalizada por capacidad máxima (más = mejor).
+
+f_garage: 1 si garage, 0 si no (o peso continuo si hay niveles).
+
+Permitir pesos (w1,w2,w3) ajustables por el usuario.
+
+Ranking & respuesta
+
+Dada (lat,lon) del usuario: buscar candidatos en un radio R (ej. 1000m) usando R-tree; calcular U y ordenar; devolver top-3.
+
+Proveer explicación breve: qué factores más pesaron (p.ej. “distancia 60% · lugares 30% · garage 10%”).
+
+API
+
+Endpoint POST /recommend con payload {lat, lon, weights?, max_radius?} → devuelve JSON con top-3.
+
+Endpoint GET /health y GET /metadata (nº de registros, timestamp).
+
+Frontend
+
+Form: ingresar ubicación o “usar mi ubicación”.
+
+Sliders para ponderaciones.
+
+Mapa muestra top-3 y ruta tentativa (opcional).
+
+Panel con explicación y métricas (distancia, lugares).
+
+
+
+UX / criterios de diseño (recomendaciones)
+
+Mapa corrientes capital
+
+Limitar radio máximo (ej. 1.5 km) para mantener relevancia.
+
+Mostrar distancia en metros y tiempo estimado (opcional, usando velocidad media de caminata).
+
+Permitir filtros rápidos: solo con garage / solo > X lugares.
+
+Incluir micro-explicación (p. ej. “Elegido por cercanía (70%) y capacidad (30%)”).
+
+Manejar casos sin candidatos: sugerir ampliar radio.
+
+Riesgos, sesgos y limitaciones (sé honesto en el informe)
+
+lugares_disponibles estático podría estar desactualizado: el agente puede recomendar sitios llenos en la realidad.
+
+Si la distribución de medidas es desigual (muchos en el centro), las recomendaciones favorecerán zonas densas. Considerar normalizar por densidad.
+
+Falta de datos de demanda → no modelás congestión temporal.
+
+Riesgo de overfitting si aprendes un ranker sin validación espacial.
