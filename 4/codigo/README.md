@@ -30,6 +30,7 @@ codigo/
 ## Backend
 
 ### Tecnologias
+
 - Python 3.9+
 - Flask (API REST)
 - Scikit-learn (MLPClassifier)
@@ -39,9 +40,10 @@ codigo/
 ### Pipeline de ML (`ml_pipeline.py`)
 
 #### 1. Preprocesamiento
+
 - **Carga de datos**: Dataset Titanic desde repositorio remoto
 - **Limpieza**: Tratamiento de valores nulos (Age con mediana, Embarked con moda)
-- **Transformacion**: 
+- **Transformacion**:
   - LabelEncoder para variable Sex
   - One-Hot Encoding para Embarked
 - **Balanceo**: SMOTE para oversampling de clase minoritaria
@@ -50,13 +52,14 @@ codigo/
 
 #### 2. Modelos Implementados
 
-| Modelo | Arquitectura | Activacion | Solver | Learning Rate |
-|--------|--------------|------------|--------|---------------|
-| Modelo 1 | (64, 32) | ReLU | Adam | 0.001 |
-| Modelo 2 | (128, 64, 32) | Tanh | SGD | 0.01 (adaptive) |
-| Modelo 3 | (50,) | Logistic | L-BFGS | default |
+| Modelo   | Arquitectura  | Activacion | Solver | Learning Rate   |
+| -------- | ------------- | ---------- | ------ | --------------- |
+| Modelo 1 | (64, 32)      | ReLU       | Adam   | 0.001           |
+| Modelo 2 | (128, 64, 32) | Tanh       | SGD    | 0.01 (adaptive) |
+| Modelo 3 | (50,)         | Logistic   | L-BFGS | default         |
 
 #### 3. Metricas Evaluadas
+
 - Accuracy (Train/Validation/Test)
 - Precision
 - Recall
@@ -67,12 +70,12 @@ codigo/
 
 ### API Endpoints
 
-| Metodo | Endpoint | Descripcion |
-|--------|----------|-------------|
-| GET | `/api/health` | Estado del servidor |
-| POST | `/api/train` | Ejecuta pipeline completo |
-| GET | `/api/results` | Obtiene ultimos resultados |
-| GET | `/api/best` | Obtiene mejor modelo |
+| Metodo | Endpoint       | Descripcion                |
+| ------ | -------------- | -------------------------- |
+| GET    | `/api/health`  | Estado del servidor        |
+| POST   | `/api/train`   | Ejecuta pipeline completo  |
+| GET    | `/api/results` | Obtiene ultimos resultados |
+| GET    | `/api/best`    | Obtiene mejor modelo       |
 
 ### Respuesta de `/api/train`
 
@@ -108,11 +111,13 @@ codigo/
 ## Frontend
 
 ### Tecnologias
+
 - Vite 5
 - React 18
 - Tailwind CSS 3
 
 ### Funcionalidades
+
 - Boton para iniciar entrenamiento
 - Visualizacion de metricas por modelo
 - Tabla comparativa
@@ -125,6 +130,7 @@ codigo/
 ## Ejecucion Local
 
 ### Requisitos
+
 - Python 3.9+
 - Node.js 18+
 
@@ -190,6 +196,7 @@ Imprime resultados directamente en consola.
 ## Criterio de Seleccion del Mejor Modelo
 
 El mejor modelo se selecciona basado en el **F1-Score de validacion**, ya que:
+
 - Balancea precision y recall
 - Es robusto ante clases desbalanceadas
 - Usar validacion evita sesgo por overfitting
@@ -202,4 +209,3 @@ El mejor modelo se selecciona basado en el **F1-Score de validacion**, ya que:
 - SMOTE aplicado solo sobre datos de entrenamiento
 - Cross-validation ejecutado post-entrenamiento para validacion adicional
 - El gap de overfitting se considera alto si supera 0.1
-
