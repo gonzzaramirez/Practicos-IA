@@ -2,7 +2,6 @@
  * Hook personalizado para llamadas a la API
  */
 import { useState, useEffect } from 'react'
-import axios from 'axios'
 import { GraphMeta, EdgeCoords } from '../types'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -13,14 +12,17 @@ export function useGraphMeta() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    axios
-      .get<GraphMeta>(`${API_URL}/api/graph-meta`)
-      .then((response) => {
-        setMeta(response.data)
+    fetch(`${API_URL}/api/graph-meta`)
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        const data: GraphMeta = await response.json()
+        setMeta(data)
         setLoading(false)
       })
       .catch((err) => {
-        setError(err.message)
+        setError(err instanceof Error ? err.message : 'Error desconocido')
         setLoading(false)
       })
   }, [])
@@ -35,14 +37,17 @@ export function useEdgesSample(decimate: number = 10) {
 
   useEffect(() => {
     setLoading(true)
-    axios
-      .get<{ edges: EdgeCoords }>(`${API_URL}/api/edges-sample?decimate=${decimate}`)
-      .then((response) => {
-        setEdges(response.data.edges)
+    fetch(`${API_URL}/api/edges-sample?decimate=${decimate}`)
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        const data: { edges: EdgeCoords } = await response.json()
+        setEdges(data.edges)
         setLoading(false)
       })
       .catch((err) => {
-        setError(err.message)
+        setError(err instanceof Error ? err.message : 'Error desconocido')
         setLoading(false)
       })
   }, [decimate])
@@ -50,9 +55,15 @@ export function useEdgesSample(decimate: number = 10) {
   return { edges, loading, error }
 }
 
-export function findNearestNode(lat: number, lon: number) {
-  return axios.get<{ node_id: number; lat: number; lon: number }>(
+export async function findNearestNode(lat: number, lon: number) {
+  const response = await fetch(
     `${API_URL}/api/find-nearest?lat=${lat}&lon=${lon}`
   )
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`)
+  }
+  const data: { node_id: number; lat: number; lon: number } = await response.json()
+  // Mantener la misma interfaz que axios para compatibilidad
+  return { data }
 }
 

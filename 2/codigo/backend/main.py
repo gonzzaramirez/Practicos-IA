@@ -9,6 +9,7 @@ Este agente implementa el modelo PAMA (Percepcion, Accion, Modelo, Actuador):
 """
 
 import json
+import unicodedata
 from pathlib import Path
 from typing import Optional
 from fastapi import FastAPI, HTTPException
@@ -41,6 +42,36 @@ def cargar_carreras():
         return json.load(f)
 
 CARRERAS = cargar_carreras()
+
+# --- Normalización y mapeo de nombres ---
+def normalizar_nombre(texto: str) -> str:
+    """
+    Normaliza un texto para matching:
+    - Convierte a minúsculas
+    - Quita tildes y caracteres especiales
+    """
+    # Normalizar a NFD (Normalization Form Decomposed) para separar caracteres base de diacríticos
+    texto_nfd = unicodedata.normalize('NFD', texto.lower())
+    # Filtrar solo caracteres que no son marcas diacríticas (tildes, etc.)
+    texto_sin_tildes = ''.join(
+        char for char in texto_nfd 
+        if unicodedata.category(char) != 'Mn'
+    )
+    return texto_sin_tildes
+
+# Crear mapeo de nombres normalizados a fichas originales
+MAPEO_CARRERAS = {}
+for carrera in CARRERAS:
+    nombre_normalizado = normalizar_nombre(carrera["nombre"])
+    # Almacenar la ficha original usando el nombre normalizado como clave
+    MAPEO_CARRERAS[nombre_normalizado] = carrera
+    # También mapear por ID normalizado
+    id_normalizado = normalizar_nombre(carrera["id"])
+    MAPEO_CARRERAS[id_normalizado] = carrera
+    # Si tiene título, también mapearlo
+    if "titulo" in carrera:
+        titulo_normalizado = normalizar_nombre(carrera["titulo"])
+        MAPEO_CARRERAS[titulo_normalizado] = carrera
 
 # --- Modelos Pydantic para validacion ---
 class MensajeUsuario(BaseModel):
@@ -86,20 +117,19 @@ AGRADECIMIENTOS = ["gracias", "muchas gracias", "te agradezco", "muy amable"]
 
 def es_consulta_relacionada(mensaje: str) -> bool:
     """Detecta si la consulta esta relacionada con carreras/educacion."""
-    mensaje_lower = mensaje.lower()
+    mensaje_normalizado = normalizar_nombre(mensaje)
     
     # Verificar si contiene palabras clave de educacion
     for keyword in KEYWORDS_EDUCACION:
-        if keyword in mensaje_lower:
+        if normalizar_nombre(keyword) in mensaje_normalizado:
             return True
     
-    # Verificar si menciona alguna carrera por nombre
-    nombres_carreras = [c["nombre"].lower() for c in CARRERAS]
-    for nombre in nombres_carreras:
+    # Verificar si menciona alguna carrera por nombre (usando nombres normalizados)
+    for nombre_normalizado in MAPEO_CARRERAS.keys():
         # Buscar partes del nombre de la carrera
-        palabras_nombre = nombre.split()
+        palabras_nombre = nombre_normalizado.split()
         for palabra in palabras_nombre:
-            if len(palabra) > 3 and palabra in mensaje_lower:
+            if len(palabra) > 3 and palabra in mensaje_normalizado:
                 return True
     
     return False
@@ -132,37 +162,59 @@ def encontrar_carrera(mensaje: str) -> Optional[dict]:
     """
     Usa fuzzy matching para encontrar la carrera mas relevante.
     Retorna la carrera con mejor coincidencia o None.
+    Utiliza nombres normalizados para matching y recupera la ficha original mediante el mapeo.
     """
-    mensaje_lower = mensaje.lower()
+    mensaje_normalizado = normalizar_nombre(mensaje)
     
-    # Crear lista de nombres de carreras para matching
-    nombres_carreras = [c["nombre"] for c in CARRERAS]
+    # Crear lista de nombres normalizados de carreras para matching
+    nombres_carreras_normalizados = [
+        normalizar_nombre(c["nombre"]) for c in CARRERAS
+    ]
     
-    # Buscar coincidencia fuzzy con umbral mas alto
+    # Buscar coincidencia fuzzy con umbral mas alto (usando nombres normalizados)
     resultado = process.extractOne(
-        mensaje_lower,
-        nombres_carreras,
+        mensaje_normalizado,
+        nombres_carreras_normalizados,
         scorer=fuzz.partial_ratio,
         score_cutoff=55
     )
     
     if resultado:
-        nombre_match, score, _ = resultado
-        for carrera in CARRERAS:
-            if carrera["nombre"] == nombre_match:
-                return {"carrera": carrera, "score": score}
+        nombre_match_normalizado, score, _ = resultado
+        # Recuperar la ficha original usando el mapeo
+        carrera = MAPEO_CARRERAS.get(nombre_match_normalizado)
+        if carrera:
+            return {"carrera": carrera, "score": score}
     
-    # Buscar por ID
+    # Buscar por ID normalizado exacto (usando el mapeo)
+    id_normalizado = mensaje_normalizado.strip()
+    carrera = MAPEO_CARRERAS.get(id_normalizado)
+    if carrera:
+        return {"carrera": carrera, "score": 80}
+    
+    # Buscar por ID contenido en el mensaje (para casos como "ing_agrimensura")
     for carrera in CARRERAS:
-        if carrera["id"].lower() in mensaje_lower:
+        id_normalizado = normalizar_nombre(carrera["id"])
+        if id_normalizado in mensaje_normalizado:
             return {"carrera": carrera, "score": 80}
     
-    # Buscar por titulo
+    # Buscar por titulo normalizado
     for carrera in CARRERAS:
         if "titulo" in carrera:
-            titulo_lower = carrera["titulo"].lower()
-            if fuzz.partial_ratio(mensaje_lower, titulo_lower) > 70:
+            titulo_normalizado = normalizar_nombre(carrera["titulo"])
+            if fuzz.partial_ratio(mensaje_normalizado, titulo_normalizado) > 70:
                 return {"carrera": carrera, "score": 70}
+    
+    # Búsqueda adicional: verificar si alguna parte del mensaje coincide directamente con un nombre normalizado
+    palabras_mensaje = mensaje_normalizado.split()
+    for palabra in palabras_mensaje:
+        if len(palabra) > 4:  # Solo palabras significativas
+            # Buscar coincidencias parciales en los nombres normalizados
+            for nombre_normalizado, carrera in MAPEO_CARRERAS.items():
+                if palabra in nombre_normalizado or nombre_normalizado in palabra:
+                    # Verificar que sea una coincidencia relevante
+                    if fuzz.partial_ratio(palabra, nombre_normalizado) > 60:
+                        return {"carrera": carrera, "score": 60}
     
     return None
 
@@ -220,7 +272,7 @@ def generar_respuesta(carrera: dict, campo: Optional[str]) -> str:
     
     campo_prof = carrera.get('campo_profesional', '')
     campo_resumido = resumir_texto(campo_prof, 200) if campo_prof else "Consulta para mas detalles."
-    
+
     return (
         f"{nombre}\n\n"
         f"Titulo: {titulo}\n"

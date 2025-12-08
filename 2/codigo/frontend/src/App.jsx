@@ -288,6 +288,11 @@ function App() {
             </Button>
           </form>
         </div>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1 text-center justify-center" >
+          <span>
+            Puedes preguntar por nombre de carrera, perfil, duracion, campo laboral o alcances del titulo
+          </span>
+        </div>
       </footer>
     </div>
   );
