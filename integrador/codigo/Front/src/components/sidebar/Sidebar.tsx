@@ -64,7 +64,7 @@ export function Sidebar({
         </div>
       </CardHeader>
 
-      <CardContent className="p-0 flex flex-col flex-1 overflow-hidden">
+      <CardContent className="p-0 flex flex-col flex-1 overflow-y-auto">
         {/* Ubicación */}
         <LocationButton
           gettingLocation={gettingLocation}
