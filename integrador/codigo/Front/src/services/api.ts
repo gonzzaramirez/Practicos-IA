@@ -1,4 +1,4 @@
-import type { RecommendResponse, ParkingResult } from "../types/parking";
+import type { RecommendResponse, ParkingResult, AllParkingItem } from "../types/parking";
 
 const API_URL = "http://localhost:8000";
 
@@ -22,6 +22,19 @@ export async function getRecommendations(
 
   if (!response.ok) {
     throw new Error("Error al obtener recomendaciones");
+  }
+
+  return response.json();
+}
+
+export async function getAllParking(): Promise<AllParkingItem[]> {
+  const response = await fetch(`${API_URL}/all-parking`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!response.ok) {
+    throw new Error("Error al obtener todos los estacionamientos");
   }
 
   return response.json();

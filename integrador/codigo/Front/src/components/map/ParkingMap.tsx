@@ -1,14 +1,15 @@
 import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet";
 import { MapController } from "./MapController";
 import { MapClickHandler } from "./MapClickHandler";
-import { createUserIcon, createParkingIcon } from "./leafletIcons";
+import { createUserIcon, createParkingIcon, createAllParkingIcon } from "./leafletIcons";
 import { MapPin } from "lucide-react";
-import type { ParkingResult } from "../../types/parking";
+import type { ParkingResult, AllParkingItem } from "../../types/parking";
 
 interface ParkingMapProps {
   center: [number, number];
   userLocation: [number, number] | null;
   results: ParkingResult[];
+  allParking: AllParkingItem[];
   maxRadius: number;
   onMapClick: (lat: number, lon: number) => void;
   onResultClick: (lat: number, lon: number) => void;
@@ -18,6 +19,7 @@ export function ParkingMap({
   center,
   userLocation,
   results,
+  allParking,
   maxRadius,
   onMapClick,
   onResultClick,
@@ -62,7 +64,39 @@ export function ParkingMap({
           </Marker>
         )}
 
-        {/* Marcadores de resultados */}
+        {/* Marcadores de todos los estacionamientos */}
+        {allParking.map((parking) => {
+          // No mostrar si ya está en los resultados (para evitar duplicados)
+          const isInResults = results.some((r) => r.gid === parking.gid);
+          if (isInResults) return null;
+
+          return (
+            <Marker
+              key={`all-${parking.gid}`}
+              position={[parking.lat, parking.lon]}
+              icon={createAllParkingIcon()}
+              eventHandlers={{
+                click: () => onResultClick(parking.lat, parking.lon),
+              }}
+            >
+              <Popup>
+                <div>
+                  <p className="font-medium">Estacionamiento #{parking.gid}</p>
+                  {parking.lugares_disponibles > 0 && (
+                    <p className="text-sm text-gray-400">
+                      Lugares: {parking.lugares_disponibles}
+                    </p>
+                  )}
+                  {parking.garage > 0 && (
+                    <p className="text-sm text-blue-400">Tiene garage</p>
+                  )}
+                </div>
+              </Popup>
+            </Marker>
+          );
+        })}
+
+        {/* Marcadores de resultados recomendados */}
         {results.map((result, index) => (
           <Marker
             key={result.gid}

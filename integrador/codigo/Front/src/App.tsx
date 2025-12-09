@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { Sidebar } from "./components/sidebar/Sidebar";
 import { ParkingMap } from "./components/map/ParkingMap";
-import { getRecommendations } from "./services/api";
+import { getRecommendations, getAllParking } from "./services/api";
 import { normalizeWeights } from "./utils/weights";
-import type { ParkingResult } from "./types/parking";
+import type { ParkingResult, AllParkingItem } from "./types/parking";
 import { CORRIENTES_CENTER } from "./constants/location";
 
 function App() {
@@ -17,6 +17,9 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [gettingLocation, setGettingLocation] = useState(false);
+  const [allParking, setAllParking] = useState<AllParkingItem[]>([]);
+  const [showAllParking, setShowAllParking] = useState(false);
+  const [loadingAllParking, setLoadingAllParking] = useState(false);
 
   // Pesos de la función de utilidad (porcentajes que se normalizan)
   const [weightDistance, setWeightDistance] = useState(50);
@@ -102,6 +105,30 @@ function App() {
     setMapCenter([lat, lon]);
   };
 
+  const handleToggleAllParking = useCallback(async () => {
+    if (showAllParking) {
+      // Ocultar todos los estacionamientos
+      setShowAllParking(false);
+    } else {
+      // Mostrar todos los estacionamientos
+      if (allParking.length === 0) {
+        // Cargar todos los estacionamientos si no están cargados
+        setLoadingAllParking(true);
+        try {
+          const data = await getAllParking();
+          setAllParking(data);
+          setShowAllParking(true);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : "Error al cargar estacionamientos");
+        } finally {
+          setLoadingAllParking(false);
+        }
+      } else {
+        setShowAllParking(true);
+      }
+    }
+  }, [showAllParking, allParking.length]);
+
   // Cuando cambian los pesos, recalcular si hay ubicación
   useEffect(() => {
     if (userLocation) {
@@ -132,18 +159,22 @@ function App() {
         loading={loading}
         error={error}
         userLocation={userLocation}
+        showAllParking={showAllParking}
+        loadingAllParking={loadingAllParking}
         onGetLocation={handleGetLocation}
         onWeightDistanceChange={setWeightDistance}
         onWeightLugaresChange={setWeightLugares}
         onWeightGarageChange={setWeightGarage}
         onMaxRadiusChange={setMaxRadius}
         onResultClick={handleResultClick}
+        onToggleAllParking={handleToggleAllParking}
       />
 
       <ParkingMap
         center={mapCenter}
         userLocation={userLocation}
         results={results}
+        allParking={showAllParking ? allParking : []}
         maxRadius={maxRadius}
         onMapClick={handleMapClick}
         onResultClick={handleResultClick}

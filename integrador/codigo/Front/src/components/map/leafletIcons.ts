@@ -49,3 +49,18 @@ export const createParkingIcon = (rank: number) =>
     iconAnchor: [14, 14],
   });
 
+export const createAllParkingIcon = () =>
+  L.divIcon({
+    className: "all-parking-marker",
+    html: `<div style="
+      background: #8b5cf6;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    "></div>`,
+    iconSize: [12, 12],
+    iconAnchor: [6, 6],
+  });
+

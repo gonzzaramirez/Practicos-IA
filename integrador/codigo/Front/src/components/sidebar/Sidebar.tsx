@@ -1,5 +1,6 @@
 import { Car } from "lucide-react";
 import { LocationButton } from "./LocationButton";
+import { AllParkingToggle } from "./AllParkingToggle";
 import { PreferencesPanel } from "./PreferencesPanel";
 import { ResultsList } from "./ResultsList";
 import type { ParkingResult } from "../../types/parking";
@@ -22,12 +23,15 @@ interface SidebarProps {
   loading: boolean;
   error: string | null;
   userLocation: [number, number] | null;
+  showAllParking: boolean;
+  loadingAllParking: boolean;
   onGetLocation: () => void;
   onWeightDistanceChange: (value: number) => void;
   onWeightLugaresChange: (value: number) => void;
   onWeightGarageChange: (value: number) => void;
   onMaxRadiusChange: (value: number) => void;
   onResultClick: (lat: number, lon: number) => void;
+  onToggleAllParking: () => void;
 }
 
 export function Sidebar({
@@ -41,12 +45,15 @@ export function Sidebar({
   loading,
   error,
   userLocation,
+  showAllParking,
+  loadingAllParking,
   onGetLocation,
   onWeightDistanceChange,
   onWeightLugaresChange,
   onWeightGarageChange,
   onMaxRadiusChange,
   onResultClick,
+  onToggleAllParking,
 }: SidebarProps) {
   return (
     <Card className="w-80 flex flex-col border-r rounded-none h-screen">
@@ -69,6 +76,13 @@ export function Sidebar({
         <LocationButton
           gettingLocation={gettingLocation}
           onGetLocation={onGetLocation}
+        />
+
+        {/* Toggle para ver todos los estacionamientos */}
+        <AllParkingToggle
+          showAllParking={showAllParking}
+          loading={loadingAllParking}
+          onToggle={onToggleAllParking}
         />
 
         {/* Preferencias */}

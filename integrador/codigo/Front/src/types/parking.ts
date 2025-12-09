@@ -15,3 +15,12 @@ export interface RecommendResponse {
   total_candidates: number;
 }
 
+export interface AllParkingItem {
+  gid: number;
+  lat: number;
+  lon: number;
+  lugares_disponibles: number;
+  garage: number;
+  altura: number;
+}
+
