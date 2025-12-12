@@ -3,9 +3,10 @@ Agente Inteligente - Chatbot Informativo de Carreras de FACENA
 ===============================================================
 Este agente implementa el modelo PAMA (Percepcion, Accion, Modelo, Actuador):
 - Percepcion: Recibe preguntas del usuario via API REST
-- Modelo: Base de conocimiento JSON + fuzzy matching para encontrar respuestas
 - Accion: Procesa la intencion y busca la mejor coincidencia
-- Actuador: Devuelve respuesta estructurada con informacion relevante
+- Meta(Medios-fines): Responder correctamente la consulta Medios: Base de Conocimiento Declarativa
+- Ambiente: Entorno inicial donde trabaja el agente. Se define como un entorno web, donde interactúan los usuarios y el sistema.
+
 """
 
 import json

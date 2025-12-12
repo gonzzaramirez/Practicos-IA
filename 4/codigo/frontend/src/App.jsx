@@ -91,6 +91,9 @@ function App() {
                   <p className="text-xs text-gray-500 mt-1">
                     Datos usados para ajustar los pesos del modelo.
                   </p>
+                  <p className="text-xs text-gray-600 mt-2 italic">
+                    El modelo aprende patrones de estos ejemplos.
+                  </p>
                 </div>
                 <div className="bg-gray-950/60 p-4 rounded">
                   <p className="text-2xl font-bold text-white">
@@ -100,6 +103,9 @@ function App() {
                   <p className="text-xs text-gray-500 mt-1">
                     Conjunto para calibrar hiperparametros sin sesgo.
                   </p>
+                  <p className="text-xs text-gray-600 mt-2 italic">
+                    Ayuda a elegir el mejor modelo sin ver el test.
+                  </p>
                 </div>
                 <div className="bg-gray-950/60 p-4 rounded">
                   <p className="text-2xl font-bold text-white">
@@ -108,6 +114,9 @@ function App() {
                   <p className="text-gray-400 text-sm">Test</p>
                   <p className="text-xs text-gray-500 mt-1">
                     Medicion final de rendimiento en datos no vistos.
+                  </p>
+                  <p className="text-xs text-gray-600 mt-2 italic">
+                    Simula el rendimiento en el mundo real.
                   </p>
                 </div>
               </div>
@@ -123,6 +132,9 @@ function App() {
                   <p className="text-sm text-gray-500">
                     Seleccion por mayor F1 en validacion: balance entre
                     precision y recall.
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1 italic">
+                    El F1-Score combina precision (confiabilidad) y recall (cobertura) en una sola métrica.
                   </p>
                 </div>
               </div>
@@ -148,19 +160,65 @@ function App() {
                   equilibrio y overfitting.
                 </p>
               </div>
+              <div className="px-6 pb-3 text-xs text-gray-500 space-y-1">
+                <p><span className="text-gray-400 font-medium">Accuracy:</span> Proporción de predicciones correctas sobre el total.</p>
+                <p><span className="text-gray-400 font-medium">Precision:</span> De los que predijo positivos, ¿cuántos eran realmente positivos? Mide confiabilidad.</p>
+                <p><span className="text-gray-400 font-medium">Recall:</span> De los realmente positivos, ¿cuántos encontró? Mide capacidad de detección.</p>
+                <p><span className="text-gray-400 font-medium">F1-Score:</span> Media armónica de precision y recall. Útil cuando ambas métricas importan.</p>
+              </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-950/60">
                     <tr className="text-gray-300">
                       <th className="px-4 py-3 text-left">Modelo</th>
-                      <th className="px-4 py-3 text-center">Tiempo</th>
-                      <th className="px-4 py-3 text-center">Acc Train</th>
-                      <th className="px-4 py-3 text-center">Acc Val</th>
-                      <th className="px-4 py-3 text-center">Acc Test</th>
-                      <th className="px-4 py-3 text-center">Precision</th>
-                      <th className="px-4 py-3 text-center">Recall</th>
-                      <th className="px-4 py-3 text-center">F1-Score</th>
-                      <th className="px-4 py-3 text-center">Overfit</th>
+                      <th className="px-4 py-3 text-center">
+                        <div className="flex flex-col items-center">
+                          <span>Tiempo</span>
+                          <span className="text-[10px] text-gray-500 font-normal">(segundos)</span>
+                        </div>
+                      </th>
+                      <th className="px-4 py-3 text-center">
+                        <div className="flex flex-col items-center">
+                          <span>Acc Train</span>
+                          <span className="text-[10px] text-gray-500 font-normal">% aciertos entrenamiento</span>
+                        </div>
+                      </th>
+                      <th className="px-4 py-3 text-center">
+                        <div className="flex flex-col items-center">
+                          <span>Acc Val</span>
+                          <span className="text-[10px] text-gray-500 font-normal">% aciertos validación</span>
+                        </div>
+                      </th>
+                      <th className="px-4 py-3 text-center">
+                        <div className="flex flex-col items-center">
+                          <span>Acc Test</span>
+                          <span className="text-[10px] text-gray-500 font-normal">% aciertos test</span>
+                        </div>
+                      </th>
+                      <th className="px-4 py-3 text-center">
+                        <div className="flex flex-col items-center">
+                          <span>Precision</span>
+                          <span className="text-[10px] text-gray-500 font-normal">TP / (TP + FP)</span>
+                        </div>
+                      </th>
+                      <th className="px-4 py-3 text-center">
+                        <div className="flex flex-col items-center">
+                          <span>Recall</span>
+                          <span className="text-[10px] text-gray-500 font-normal">TP / (TP + FN)</span>
+                        </div>
+                      </th>
+                      <th className="px-4 py-3 text-center">
+                        <div className="flex flex-col items-center">
+                          <span>F1-Score</span>
+                          <span className="text-[10px] text-gray-500 font-normal">balance precision/recall</span>
+                        </div>
+                      </th>
+                      <th className="px-4 py-3 text-center">
+                        <div className="flex flex-col items-center">
+                          <span>Overfit</span>
+                          <span className="text-[10px] text-gray-500 font-normal">diferencia train-val</span>
+                        </div>
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -238,35 +296,55 @@ function App() {
                     <p className="text-gray-200 text-sm mb-3 truncate">
                       {name}
                     </p>
-                    <div className="grid grid-cols-2 gap-2 text-center">
-                      <div className="bg-gray-800/80 p-3 rounded">
-                        <p className="text-xs text-gray-500">TN</p>
-                        <p className="text-xl font-bold text-white">
-                          {metrics.confusion_matrix[0][0]}
-                        </p>
+                    <div className="space-y-2">
+                      {/* Encabezado de columnas */}
+                      <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                        <div></div>
+                        <div className="text-gray-400 font-medium">Pred: No sobrevivió</div>
+                        <div className="text-gray-400 font-medium">Pred: Sobrevivió</div>
                       </div>
-                      <div className="bg-gray-800/80 p-3 rounded">
-                        <p className="text-xs text-gray-500">FP</p>
-                        <p className="text-xl font-bold text-white">
-                          {metrics.confusion_matrix[0][1]}
-                        </p>
+                      {/* Fila 1: Real = No sobrevivió */}
+                      <div className="grid grid-cols-3 gap-2 text-center">
+                        <div className="text-gray-400 text-xs font-medium flex items-center justify-start pl-2">
+                          Real: No sobrevivió
+                        </div>
+                        <div className="bg-gray-800/80 p-3 rounded">
+                          <p className="text-xs text-gray-500">TN</p>
+                          <p className="text-xl font-bold text-white">
+                            {metrics.confusion_matrix[0][0]}
+                          </p>
+                        </div>
+                        <div className="bg-gray-800/80 p-3 rounded">
+                          <p className="text-xs text-gray-500">FP</p>
+                          <p className="text-xl font-bold text-white">
+                            {metrics.confusion_matrix[0][1]}
+                          </p>
+                        </div>
                       </div>
-                      <div className="bg-gray-800/80 p-3 rounded">
-                        <p className="text-xs text-gray-500">FN</p>
-                        <p className="text-xl font-bold text-white">
-                          {metrics.confusion_matrix[1][0]}
-                        </p>
-                      </div>
-                      <div className="bg-gray-800/80 p-3 rounded">
-                        <p className="text-xs text-gray-500">TP</p>
-                        <p className="text-xl font-bold text-white">
-                          {metrics.confusion_matrix[1][1]}
-                        </p>
+                      {/* Fila 2: Real = Sobrevivió */}
+                      <div className="grid grid-cols-3 gap-2 text-center">
+                        <div className="text-gray-400 text-xs font-medium flex items-center justify-start pl-2">
+                          Real: Sobrevivió
+                        </div>
+                        <div className="bg-gray-800/80 p-3 rounded">
+                          <p className="text-xs text-gray-500">FN</p>
+                          <p className="text-xl font-bold text-white">
+                            {metrics.confusion_matrix[1][0]}
+                          </p>
+                        </div>
+                        <div className="bg-gray-800/80 p-3 rounded">
+                          <p className="text-xs text-gray-500">TP</p>
+                          <p className="text-xl font-bold text-white">
+                            {metrics.confusion_matrix[1][1]}
+                          </p>
+                        </div>
                       </div>
                     </div>
                     <p className="text-xs text-gray-500 mt-3">
-                      TN/TP muestran aciertos; FP/FN revelan errores que
-                      impactan precision y recall.
+                      <span className="text-gray-400 font-medium">Filas:</span> Real (lo que pasó).{" "}
+                      <span className="text-gray-400 font-medium">Columnas:</span> Predicción (lo que el modelo dijo).{" "}
+                      <span className="text-gray-400 font-medium">TN/TP:</span> Aciertos.{" "}
+                      <span className="text-gray-400 font-medium">FP/FN:</span> Errores.
                     </p>
                   </div>
                 ))}
@@ -282,6 +360,14 @@ function App() {
                 <p className="text-sm text-gray-500">
                   Media y variacion de desempeno al rotar los folds; refleja
                   estabilidad.
+                </p>
+              </div>
+              <div className="px-6 pb-3 text-xs text-gray-500">
+                <p className="mb-1">
+                  <span className="text-gray-400 font-medium">Cross-Validation:</span> Divide los datos en 5 partes (folds), entrena 5 veces usando 4 partes y prueba con la restante.
+                </p>
+                <p>
+                  La <span className="text-gray-400 font-medium">media</span> indica rendimiento promedio; la <span className="text-gray-400 font-medium">desviación</span> muestra qué tan consistente es el modelo.
                 </p>
               </div>
               <div className="grid md:grid-cols-3 gap-4">
