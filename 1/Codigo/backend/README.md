@@ -101,3 +101,5 @@ Los algoritmos son **generadores** que emiten eventos:
 - `networkx`: Manipulación de grafos
 - `osmnx`: Descarga de grafos de OpenStreetMap
 - `shapely`: Operaciones geométricas
+
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000

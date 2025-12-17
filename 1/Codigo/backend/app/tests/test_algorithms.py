@@ -2,7 +2,7 @@
 Tests para los algoritmos de búsqueda de rutas
 """
 import networkx as nx
-from app.algorithms import dijkstra_stream, astar_stream, reconstruct_path
+from app.main import dijkstra_stream, astar_stream, reconstruct_path
 
 
 def make_simple_graph():
